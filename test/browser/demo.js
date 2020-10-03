@@ -10,11 +10,11 @@
 
   util = require('./util');
 
-  space = new Buffer(' ');
+  space = Buffer.from(' ');
 
-  newline = new Buffer('\n');
+  newline = Buffer.from('\n');
 
-  punctuation = new Buffer('.');
+  punctuation = Buffer.from('.');
 
   words_per_line = 200;
 
@@ -30,7 +30,7 @@
       if (chunk.length < this.block_size) {
         return cb(null, chunk);
       }
-      res = new Buffer('');
+      res = Buffer.from('');
       if (!this._header_written) {
         res = Buffer.concat([this._header, punctuation, space]);
         this._header_written = true;
@@ -57,8 +57,8 @@
       } else {
         _brand = 'KEYBASE';
       }
-      this._header = new Buffer("BEGIN" + space + _brand + space + "SALTPACK" + space + "ENCRYPTED" + space + "MESSAGE");
-      this._footer = new Buffer("END" + space + _brand + space + "SALTPACK" + space + "ENCRYPTED" + space + "MESSAGE");
+      this._header = Buffer.from("BEGIN" + space + _brand + space + "SALTPACK" + space + "ENCRYPTED" + space + "MESSAGE");
+      this._footer = Buffer.from("END" + space + _brand + space + "SALTPACK" + space + "ENCRYPTED" + space + "MESSAGE");
       this._header_written = false;
       this._word_count = 0;
       FormatStream.__super__.constructor.call(this, {
@@ -86,13 +86,13 @@
     _strip_re = /[>\n\r\t ]/g;
 
     _strip = function(chunk) {
-      return chunk = new Buffer(chunk.toString().replace(_strip_re, ""));
+      return chunk = Buffer.from(chunk.toString().replace(_strip_re, ""));
     };
 
     DeformatStream.prototype._deformat = function(chunk, cb) {
       var expected_footer, footer, index, re;
       chunk = Buffer.concat([this._partial, chunk]);
-      this._partial = new Buffer('');
+      this._partial = Buffer.from('');
       if (this._mode === _header_mode) {
         index = chunk.indexOf(punctuation[0]);
         if (index !== -1) {
@@ -123,7 +123,7 @@
         if (index !== -1) {
           footer = chunk.slice(0, index);
           re = /[>\n\r\t ]*END[>\n\r\t ]+([a-zA-Z0-9]+)?[>\n\r\t ]+SALTPACK[>\n\r\t ]+(ENCRYPTED[>\n\r\t ]+MESSAGE)|(SIGNED[>\n\r\t ]+MESSAGE)|(DETACHED[>\n\r\t ]+SIGNATURE)[>\n\r\t ]*/;
-          expected_footer = Buffer.concat([new Buffer('END'), _strip(this._header).slice(5)]);
+          expected_footer = Buffer.concat([Buffer.from('END'), _strip(this._header).slice(5)]);
           if (!(re.test(footer) && util.bufeq_secure(_strip(footer), expected_footer))) {
             return cb(new Error("Footer failed to verify! " + (_strip(footer)) + " != " + expected_footer), null);
           }
@@ -143,7 +143,7 @@
       brand = _arg.brand;
       this._header = null;
       this._mode = _header_mode;
-      this._partial = new Buffer('');
+      this._partial = Buffer.from('');
       DeformatStream.__super__.constructor.call(this, {
         transform_func: this._deformat,
         block_size: 2048,
@@ -196,7 +196,7 @@
   compute_mac_key = function(_arg, cb) {
     var encryptor, header_hash, mac_box, pubkey, zero_bytes;
     encryptor = _arg.encryptor, header_hash = _arg.header_hash, pubkey = _arg.pubkey;
-    zero_bytes = new Buffer(crypto_auth_KEYBYTES);
+    zero_bytes = Buffer.from(crypto_auth_KEYBYTES);
     zero_bytes.fill(0);
     try {
       mac_box = encryptor.encrypt({
@@ -457,23 +457,23 @@
   uint64be = require('uint64be');
 
   exports.nonceForSenderKeySecretBox = function() {
-    return new Buffer('saltpack_sender_key_sbox');
+    return Buffer.from('saltpack_sender_key_sbox');
   };
 
   exports.nonceForPayloadKeyBox = function() {
-    return new Buffer('saltpack_payload_key_box');
+    return Buffer.from('saltpack_payload_key_box');
   };
 
   exports.nonceForMACKeyBox = function(headerHash) {
     if (headerHash.length !== 64) {
       throw new Error('Header hash shorter than expected');
     }
-    return new Buffer(headerHash.slice(0, crypto_secretbox_NONCEBYTES));
+    return Buffer.from(headerHash.slice(0, crypto_secretbox_NONCEBYTES));
   };
 
   exports.nonceForChunkSecretBox = function(encryptionBlockNumber) {
     var nonce;
-    nonce = new Buffer('saltpack_ploadsb');
+    nonce = Buffer.from('saltpack_ploadsb');
     return Buffer.concat([nonce, uint64be.encode(encryptionBlockNumber)]);
   };
 
@@ -831,7 +831,7 @@
             filename: "/home/antonio/go/src/github.com/keybase/node-saltpack/src/stream.iced",
             funcname: "NaClEncryptStream.flush_append"
           });
-          _this._encrypt(new Buffer(''), esc(__iced_deferrals.defer({
+          _this._encrypt(Buffer.from(''), esc(__iced_deferrals.defer({
             assign_fn: (function() {
               return function() {
                 return payload_list = arguments[0];
@@ -1477,7 +1477,7 @@ exports.EncoderBuffer = EncoderBuffer;
 
 EncoderBuffer.prototype.join = function join(out, offset) {
   if (!out)
-    out = new Buffer(this.length);
+    out = Buffer.from(this.length);
   if (!offset)
     offset = 0;
 
@@ -2713,7 +2713,7 @@ PEMDecoder.prototype.decode = function decode(data, options) {
   // Remove excessive symbols
   base64.replace(/[^a-z0-9\+\/=]+/gi, '');
 
-  var input = new Buffer(base64, 'base64');
+  var input = Buffer.from(base64, 'base64');
   return DERDecoder.prototype.decode.call(this, input, options);
 };
 
@@ -2757,7 +2757,7 @@ DERNode.prototype._encodeComposite = function encodeComposite(tag,
 
   // Short form
   if (content.length < 0x80) {
-    var header = new Buffer(2);
+    var header = Buffer.from(2);
     header[0] = encodedTag;
     header[1] = content.length;
     return this._createEncoderBuffer([ header, content ]);
@@ -2769,7 +2769,7 @@ DERNode.prototype._encodeComposite = function encodeComposite(tag,
   for (var i = content.length; i >= 0x100; i >>= 8)
     lenOctets++;
 
-  var header = new Buffer(1 + 1 + lenOctets);
+  var header = Buffer.from(1 + 1 + lenOctets);
   header[0] = encodedTag;
   header[1] = 0x80 | lenOctets;
 
@@ -2783,7 +2783,7 @@ DERNode.prototype._encodeStr = function encodeStr(str, tag) {
   if (tag === 'bitstr') {
     return this._createEncoderBuffer([ str.unused | 0, str.data ]);
   } else if (tag === 'bmpstr') {
-    var buf = new Buffer(str.length * 2);
+    var buf = Buffer.from(str.length * 2);
     for (var i = 0; i < str.length; i++) {
       buf.writeUInt16BE(str.charCodeAt(i), i * 2);
     }
@@ -2848,7 +2848,7 @@ DERNode.prototype._encodeObjid = function encodeObjid(id, values, relative) {
       size++;
   }
 
-  var objid = new Buffer(size);
+  var objid = Buffer.from(size);
   var offset = objid.length - 1;
   for (var i = id.length - 1; i >= 0; i--) {
     var ident = id[i];
@@ -2919,7 +2919,7 @@ DERNode.prototype._encodeInt = function encodeInt(num, values) {
     if (!num.sign && numArray[0] & 0x80) {
       numArray.unshift(0);
     }
-    num = new Buffer(numArray);
+    num = Buffer.from(numArray);
   }
 
   if (Buffer.isBuffer(num)) {
@@ -2927,7 +2927,7 @@ DERNode.prototype._encodeInt = function encodeInt(num, values) {
     if (num.length === 0)
       size++;
 
-    var out = new Buffer(size);
+    var out = Buffer.from(size);
     num.copy(out);
     if (num.length === 0)
       out[0] = 0
@@ -2953,7 +2953,7 @@ DERNode.prototype._encodeInt = function encodeInt(num, values) {
     out.unshift(0);
   }
 
-  return this._createEncoderBuffer(new Buffer(out));
+  return this._createEncoderBuffer(Buffer.from(out));
 };
 
 DERNode.prototype._encodeBool = function encodeBool(value) {
@@ -6635,7 +6635,7 @@ if (!engine) {
 }
 
 for (var k in syms) {
-	exports[k] = syms[k];	
+	exports[k] = syms[k];
 }
 
 },{"./lib/fast":25,"./lib/pure":26,"./lib/wrap":27}],25:[function(require,module,exports){
@@ -6653,13 +6653,13 @@ for (var k in syms) {
 			// Filter out any empty spaces.
 			a = a.replace(/\s+/g,'');
 			if (!b) { b = 10; }
-			this._v = bigint(a,b);	
+			this._v = bigint(a,b);
 		} else if (typeof(a) == 'number') {
 			this._v = bigint(a);
 		} else if (typeof(a) == 'object' && Array.isArray(a)) {
-			this._v = bigint.fromBuffer(new Buffer(a));
+			this._v = bigint.fromBuffer(Buffer.from(a));
 		} else if (a.constructor != zed.constructor) {
-			throw new Error("failed to get valid inner object in constructor");	
+			throw new Error("failed to get valid inner object in constructor");
 		} else {
 			this._v = a;
 		}
@@ -6800,7 +6800,7 @@ for (var k in syms) {
 	};
 
 	BigInteger.fromByteArrayUnsigned = function (b) {
-		return BigInteger.fromBuffer(new Buffer(b));
+		return BigInteger.fromBuffer(Buffer.from(b));
 	};
 
 	BigInteger.fromBuffer = function (x) {
@@ -6813,7 +6813,7 @@ for (var k in syms) {
 		else if (buf[0] == 0) { ret = BigInteger.fromBuffer(buf); }
 		else {
 			ret = BigInteger.fromBuffer(buf);
-			if (buf[0] & 0x80) { 
+			if (buf[0] & 0x80) {
 				var z = BigInteger.ONE.shiftLeft(ret.bitLength())
 				ret = ret.subtract(z);
 			}
@@ -6837,8 +6837,8 @@ for (var k in syms) {
 	BigInteger.prototype.toDERInteger = function () {
 		var ret = null;
 		var s = this.signum();
-		
-		if (s == 0) { ret = new Buffer([0]); }
+
+		if (s == 0) { ret = Buffer.from([0]); }
 		else if (s < 0) {
 			var z = this.compute_twos_complement();
 			ret = z.toBuffer();
@@ -6849,7 +6849,7 @@ for (var k in syms) {
 			// If the high bit is on, and we're unsigned, we have to prepend a \x00
 			// byte to show that we're positive.
 			if (this.bitLength() % 8 == 0) {
-				pad = new Buffer([0]);
+				pad = Buffer.from([0]);
 				ret = Buffer.concat([ pad, ret ]);
 			}
 		}
@@ -6882,7 +6882,7 @@ for (var k in syms) {
 		var l = b.length;
 		var ret = new Array(l);
 		for (var i = 0; i < l; i++) {
-			ret[i] = b[i];	
+			ret[i] = b[i];
 		}
 		return ret;
 	};
@@ -6894,10 +6894,10 @@ for (var k in syms) {
 	BigInteger.prototype.toBuffer = function (size) {
 		var ret = null;
 		if (!size) { size = 0; }
-		if (this.signum() == 0) { ret = new Buffer([]); }
+		if (this.signum() == 0) { ret = Buffer.from([]); }
 		else { ret = this._v.toBuffer(); }
 		if ((diff = size - ret.length) > 0) {
-			var pad = new Buffer(diff);
+			var pad = Buffer.from(diff);
 			pad.fill(0);
 			ret = Buffer.concat([pad, ret]);
 		}
@@ -6940,7 +6940,7 @@ for (var k in syms) {
 		return res.eq(zed);
 	};
 
-	// returns bit length of the integer x. stolen from 
+	// returns bit length of the integer x. stolen from
 	// elsewhere is jsbn.
 	function nbits(x) {
   		var r = 1, t;
@@ -6954,7 +6954,7 @@ for (var k in syms) {
 
 	BigInteger.random_nbit = function (nbits, rf) {
 		var nbytes = Math.ceil(nbits / 8);
-		var buf = new Buffer(nbytes);
+		var buf = Buffer.from(nbytes);
 		rf.nextBytes(buf);
 		var ret = bigint.fromBuffer(buf);
 		var mask = bigint(1).shiftLeft(nbits).sub(bigint(1));
@@ -6976,7 +6976,7 @@ for (var k in syms) {
 		if (!base) { base = 10; }
 		var raw = this._v.toString(base);
 		if (raw.length == 0) {
-			raw = "0";	
+			raw = "0";
 		} else if (base == 16 && raw.length > 1) {
 			if (raw[0] == "0") {
 				raw = raw.slice(1);
@@ -7006,14 +7006,14 @@ for (var k in syms) {
 }).call(this,require("buffer").Buffer)
 },{"./wrap":27,"buffer":58}],26:[function(require,module,exports){
 (function (Buffer){
-(function (){ 
-	 
+(function (){
+
 	 /*
-	  * Copyright (c) 2003-2005  Tom Wu (tjw@cs.Stanford.EDU) 
+	  * Copyright (c) 2003-2005  Tom Wu (tjw@cs.Stanford.EDU)
 	  * All Rights Reserved.
 	  *
-	  * Modified by Recurity Labs GmbH 
-	  * 
+	  * Modified by Recurity Labs GmbH
+	  *
 	  * Permission is hereby granted, free of charge, to any person obtaining
 	  * a copy of this software and associated documentation files (the
 	  * "Software"), to deal in the Software without restriction, including
@@ -7025,9 +7025,9 @@ for (var k in syms) {
 	  * The above copyright notice and this permission notice shall be
 	  * included in all copies or substantial portions of the Software.
 	  *
-	  * THE SOFTWARE IS PROVIDED "AS-IS" AND WITHOUT WARRANTY OF ANY KIND, 
-	  * EXPRESS, IMPLIED OR OTHERWISE, INCLUDING WITHOUT LIMITATION, ANY 
-	  * WARRANTY OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.  
+	  * THE SOFTWARE IS PROVIDED "AS-IS" AND WITHOUT WARRANTY OF ANY KIND,
+	  * EXPRESS, IMPLIED OR OTHERWISE, INCLUDING WITHOUT LIMITATION, ANY
+	  * WARRANTY OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
 	  *
 	  * IN NO EVENT SHALL TOM WU BE LIABLE FOR ANY SPECIAL, INCIDENTAL,
 	  * INDIRECT OR CONSEQUENTIAL DAMAGES OF ANY KIND, OR ANY DAMAGES WHATSOEVER
@@ -7040,16 +7040,16 @@ for (var k in syms) {
 	  * All redistributions must retain an intact copy of this copyright notice
 	  * and disclaimer.
 	  */
-	 
+
 	 // Basic JavaScript BN library - subset useful for RSA encryption.
-	 
+
 	 // Bits per digit
 	 var dbits;
-	 
+
 	 // JavaScript engine analysis
 	 var canary = 0xdeadbeefcafe;
 	 var j_lm = ((canary&0xffffff)==0xefcafe);
-	 
+
 	 // (public) Constructor
 	 function BigInteger(a,b,c) {
 	   // bigi has this, so add it in...
@@ -7060,15 +7060,15 @@ for (var k in syms) {
 	     else if(b == null && "string" != typeof a) this.fromString(a,256);
 	     else this.fromString(a,b);
 	 }
-	 
+
 	 // return new, unset BigInteger
 	 function nbi() { return new BigInteger(null); }
-	 
+
 	 // am: Compute w_j += (x*this_i), propagate carries,
 	 // c is initial carry, returns final carry.
 	 // c < 3*dvalue, x < 2*dvalue, this_i < dvalue
 	 // We need to select the fastest one that works in this environment.
-	 
+
 	 // am1: use a single mult and divide to get the high bits,
 	 // max digit bits should be 26 because
 	 // max internal value = 2*dvalue^2-2*dvalue (< 2^53)
@@ -7109,20 +7109,20 @@ for (var k in syms) {
 	   }
 	   return c;
 	 }
-	 
+
 	 // Chrome seems to prefer this...
 	 BigInteger.prototype.am = am3;
 	 dbits = 28;
-	 
+
 	 BigInteger.prototype.DB = dbits;
 	 BigInteger.prototype.DM = ((1<<dbits)-1);
 	 BigInteger.prototype.DV = (1<<dbits);
-	 
+
 	 var BI_FP = 52;
 	 BigInteger.prototype.FV = Math.pow(2,BI_FP);
 	 BigInteger.prototype.F1 = BI_FP-dbits;
 	 BigInteger.prototype.F2 = 2*dbits-BI_FP;
-	 
+
 	 // Digit conversions
 	 var BI_RM = "0123456789abcdefghijklmnopqrstuvwxyz";
 	 var BI_RC = new Array();
@@ -7133,20 +7133,20 @@ for (var k in syms) {
 	 for(vv = 10; vv < 36; ++vv) BI_RC[rr++] = vv;
 	 rr = "A".charCodeAt(0);
 	 for(vv = 10; vv < 36; ++vv) BI_RC[rr++] = vv;
-	 
+
 	 function int2char(n) { return BI_RM.charAt(n); }
 	 function intAt(s,i) {
 	   var c = BI_RC[s.charCodeAt(i)];
 	   return (c==null)?-1:c;
 	 }
-	 
+
 	 // (protected) copy this to r
 	 function bnpCopyTo(r) {
 	   for(var i = this.t-1; i >= 0; --i) r[i] = this[i];
 	   r.t = this.t;
 	   r.s = this.s;
 	 }
-	 
+
 	 // (protected) set from integer value x, -DV <= x < DV
 	 function bnpFromInt(x) {
 	   this.t = 1;
@@ -7155,10 +7155,10 @@ for (var k in syms) {
 	   else if(x < -1) this[0] = x+this.DV;
 	   else this.t = 0;
 	 }
-	 
+
 	 // return bigint initialized to value
 	 function nbv(i) { var r = nbi(); r.fromInt(i); return r; }
-	 
+
 	 // (protected) set from string and radix
 	 function bnpFromString(s,b,unsigned) {
 	   var k;
@@ -7198,13 +7198,13 @@ for (var k in syms) {
 	   if(mi) BigInteger.ZERO.subTo(this,this);
 	   return this;
 	 }
-	 
+
 	 // (protected) clamp off excess high words
 	 function bnpClamp() {
 	   var c = this.s&this.DM;
 	   while(this.t > 0 && this[this.t-1] == c) --this.t;
 	 }
-	 
+
 	 // (public) return string representation in given radix
 	 function bnToString(b) {
 	   if(this.s < 0) return "-"+this.negate().toString(b);
@@ -7234,13 +7234,13 @@ for (var k in syms) {
 	   }
 	   return m?r:"0";
 	 }
-	 
+
 	 // (public) -this
 	 function bnNegate() { var r = nbi(); BigInteger.ZERO.subTo(this,r); return r; }
-	 
+
 	 // (public) |this|
 	 function bnAbs() { return (this.s<0)?this.negate():this; }
-	 
+
 	 // (public) return + if this > a, - if this < a, 0 if equal
 	 function bnCompareTo(a) {
 	   var r = this.s-a.s;
@@ -7251,7 +7251,7 @@ for (var k in syms) {
 	   while(--i >= 0) if((r=this[i]-a[i]) != 0) return r;
 	   return 0;
 	 }
-	 
+
 	 // returns bit length of the integer x
 	 function nbits(x) {
 	   var r = 1, t;
@@ -7262,13 +7262,13 @@ for (var k in syms) {
 	   if((t=x>>1) != 0) { x = t; r += 1; }
 	   return r;
 	 }
-	 
+
 	 // (public) return the number of bits in "this"
 	 function bnBitLength() {
 	   if(this.t <= 0) return 0;
 	   return this.DB*(this.t-1)+nbits(this[this.t-1]^(this.s&this.DM));
 	 }
-	 
+
 	 // (protected) r = this << n*DB
 	 function bnpDLShiftTo(n,r) {
 	   var i;
@@ -7277,14 +7277,14 @@ for (var k in syms) {
 	   r.t = this.t+n;
 	   r.s = this.s;
 	 }
-	 
+
 	 // (protected) r = this >> n*DB
 	 function bnpDRShiftTo(n,r) {
 	   for(var i = n; i < this.t; ++i) r[i-n] = this[i];
 	   r.t = Math.max(this.t-n,0);
 	   r.s = this.s;
 	 }
-	 
+
 	 // (protected) r = this << n
 	 function bnpLShiftTo(n,r) {
 	   var bs = n%this.DB;
@@ -7301,7 +7301,7 @@ for (var k in syms) {
 	   r.s = this.s;
 	   r.clamp();
 	 }
-	 
+
 	 // (protected) r = this >> n
 	 function bnpRShiftTo(n,r) {
 	   r.s = this.s;
@@ -7319,7 +7319,7 @@ for (var k in syms) {
 	   r.t = this.t-ds;
 	   r.clamp();
 	 }
-	 
+
 	 // (protected) r = this - a
 	 function bnpSubTo(a,r) {
 	   var i = 0, c = 0, m = Math.min(a.t,this.t);
@@ -7352,7 +7352,7 @@ for (var k in syms) {
 	   r.t = i;
 	   r.clamp();
 	 }
-	 
+
 	 // (protected) r = this * a, r != this,a (HAC 14.12)
 	 // "this" should be the larger one if appropriate.
 	 function bnpMultiplyTo(a,r) {
@@ -7365,7 +7365,7 @@ for (var k in syms) {
 	   r.clamp();
 	   if(this.s != a.s) BigInteger.ZERO.subTo(r,r);
 	 }
-	 
+
 	 // (protected) r = this^2, r != this (HAC 14.16)
 	 function bnpSquareTo(r) {
 	   var x = this.abs();
@@ -7382,7 +7382,7 @@ for (var k in syms) {
 	   r.s = 0;
 	   r.clamp();
 	 }
-	 
+
 	 // (protected) divide this by m, quotient and remainder to q, r (HAC 14.20)
 	 // r != q, this != m.  q or r may be null.
 	 function bnpDivRemTo(m,q,r) {
@@ -7431,7 +7431,7 @@ for (var k in syms) {
 	   if(nsh > 0) r.rShiftTo(nsh,r);	// Denormalize remainder
 	   if(ts < 0) BigInteger.ZERO.subTo(r,r);
 	 }
-	 
+
 	 // (public) this mod a
 	 function bnMod(a) {
 	   var r = nbi();
@@ -7439,7 +7439,7 @@ for (var k in syms) {
 	   if(this.s < 0 && r.compareTo(BigInteger.ZERO) > 0) a.subTo(r,r);
 	   return r;
 	 }
-	 
+
 	 // Modular reduction using "classic" algorithm
 	 function Classic(m) { this.m = m; }
 	 function cConvert(x) {
@@ -7450,13 +7450,13 @@ for (var k in syms) {
 	 function cReduce(x) { x.divRemTo(this.m,null,x); }
 	 function cMulTo(x,y,r) { x.multiplyTo(y,r); this.reduce(r); }
 	 function cSqrTo(x,r) { x.squareTo(r); this.reduce(r); }
-	 
+
 	 Classic.prototype.convert = cConvert;
 	 Classic.prototype.revert = cRevert;
 	 Classic.prototype.reduce = cReduce;
 	 Classic.prototype.mulTo = cMulTo;
 	 Classic.prototype.sqrTo = cSqrTo;
-	 
+
 	 // (protected) return "-1/this % 2^DB"; useful for Mont. reduction
 	 // justification:
 	 //         xy == 1 (mod m)
@@ -7481,7 +7481,7 @@ for (var k in syms) {
 	   // we really want the negative inverse, and -DV < y < DV
 	   return (y>0)?this.DV-y:-y;
 	 }
-	 
+
 	 // Montgomery reduction
 	 function Montgomery(m) {
 	   this.m = m;
@@ -7491,7 +7491,7 @@ for (var k in syms) {
 	   this.um = (1<<(m.DB-15))-1;
 	   this.mt2 = 2*m.t;
 	 }
-	 
+
 	 // xR mod m
 	 function montConvert(x) {
 	   var r = nbi();
@@ -7500,7 +7500,7 @@ for (var k in syms) {
 	   if(x.s < 0 && r.compareTo(BigInteger.ZERO) > 0) this.m.subTo(r,r);
 	   return r;
 	 }
-	 
+
 	 // x/R mod m
 	 function montRevert(x) {
 	   var r = nbi();
@@ -7508,7 +7508,7 @@ for (var k in syms) {
 	   this.reduce(r);
 	   return r;
 	 }
-	 
+
 	 // x = x/R mod m (HAC 14.32)
 	 function montReduce(x) {
 	   while(x.t <= this.mt2)	// pad x so am has enough room later
@@ -7527,22 +7527,22 @@ for (var k in syms) {
 	   x.drShiftTo(this.m.t,x);
 	   if(x.compareTo(this.m) >= 0) x.subTo(this.m,x);
 	 }
-	 
+
 	 // r = "x^2/R mod m"; x != r
 	 function montSqrTo(x,r) { x.squareTo(r); this.reduce(r); }
-	 
+
 	 // r = "xy/R mod m"; x,y != r
 	 function montMulTo(x,y,r) { x.multiplyTo(y,r); this.reduce(r); }
-	 
+
 	 Montgomery.prototype.convert = montConvert;
 	 Montgomery.prototype.revert = montRevert;
 	 Montgomery.prototype.reduce = montReduce;
 	 Montgomery.prototype.mulTo = montMulTo;
 	 Montgomery.prototype.sqrTo = montSqrTo;
-	 
+
 	 // (protected) true iff this is even
 	 function bnpIsEven() { return ((this.t>0)?(this[0]&1):this.s) == 0; }
-	 
+
 	 // (protected) this^e, e < 2^32, doing sqr and mul with "r" (HAC 14.79)
 	 function bnpExp(e,z) {
 	   if(e > 0xffffffff || e < 1) return BigInteger.ONE;
@@ -7555,14 +7555,14 @@ for (var k in syms) {
 	   }
 	   return z.revert(r);
 	 }
-	 
+
 	 // (public) this^e % m, 0 <= e < 2^32
 	 function bnModPowInt(e,m) {
 	   var z;
 	   if(e < 256 || m.isEven()) z = new Classic(m); else z = new Montgomery(m);
 	   return this.exp(e,z);
 	 }
-	 
+
 	 // protected
 	 BigInteger.prototype.copyTo = bnpCopyTo;
 	 BigInteger.prototype.fromInt = bnpFromInt;
@@ -7579,7 +7579,7 @@ for (var k in syms) {
 	 BigInteger.prototype.invDigit = bnpInvDigit;
 	 BigInteger.prototype.isEven = bnpIsEven;
 	 BigInteger.prototype.exp = bnpExp;
-	 
+
 	 // public
 	 BigInteger.prototype.toString = bnToString;
 	 BigInteger.prototype.negate = bnNegate;
@@ -7588,13 +7588,13 @@ for (var k in syms) {
 	 BigInteger.prototype.bitLength = bnBitLength;
 	 BigInteger.prototype.mod = bnMod;
 	 BigInteger.prototype.modPowInt = bnModPowInt;
-	 
+
 	 // "constants"
 	 BigInteger.ZERO = nbv(0);
 	 BigInteger.ONE = nbv(1);
-	 
+
 	 /*
-	  * Copyright (c) 2003-2005  Tom Wu (tjw@cs.Stanford.EDU) 
+	  * Copyright (c) 2003-2005  Tom Wu (tjw@cs.Stanford.EDU)
 	  * All Rights Reserved.
 	  *
 	  * Modified by Recurity Labs GmbH
@@ -7610,9 +7610,9 @@ for (var k in syms) {
 	  * The above copyright notice and this permission notice shall be
 	  * included in all copies or substantial portions of the Software.
 	  *
-	  * THE SOFTWARE IS PROVIDED "AS-IS" AND WITHOUT WARRANTY OF ANY KIND, 
-	  * EXPRESS, IMPLIED OR OTHERWISE, INCLUDING WITHOUT LIMITATION, ANY 
-	  * WARRANTY OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.  
+	  * THE SOFTWARE IS PROVIDED "AS-IS" AND WITHOUT WARRANTY OF ANY KIND,
+	  * EXPRESS, IMPLIED OR OTHERWISE, INCLUDING WITHOUT LIMITATION, ANY
+	  * WARRANTY OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
 	  *
 	  * IN NO EVENT SHALL TOM WU BE LIABLE FOR ANY SPECIAL, INCIDENTAL,
 	  * INDIRECT OR CONSEQUENTIAL DAMAGES OF ANY KIND, OR ANY DAMAGES WHATSOEVER
@@ -7626,13 +7626,13 @@ for (var k in syms) {
 	  * and disclaimer.
 	  */
 	 // Extended JavaScript BN functions, required for RSA private ops.
-	 
+
 	 // Version 1.1: new BigInteger("0", 10) returns "proper" zero
 	 // Version 1.2: square() API, isProbablePrime fix
-	 
+
 	 // (public)
 	 function bnClone() { var r = nbi(); this.copyTo(r); return r; }
-	 
+
 	 // (public) return value as integer
 	 function bnIntValue() {
 	   if(this.s < 0) {
@@ -7644,23 +7644,23 @@ for (var k in syms) {
 	   // assumes 16 < DB < 32
 	   return ((this[1]&((1<<(32-this.DB))-1))<<this.DB)|this[0];
 	 }
-	 
+
 	 // (public) return value as byte
 	 function bnByteValue() { return (this.t==0)?this.s:(this[0]<<24)>>24; }
-	 
+
 	 // (public) return value as short (assumes DB>=16)
 	 function bnShortValue() { return (this.t==0)?this.s:(this[0]<<16)>>16; }
-	 
+
 	 // (protected) return x s.t. r^x < DV
 	 function bnpChunkSize(r) { return Math.floor(Math.LN2*this.DB/Math.log(r)); }
-	 
+
 	 // (public) 0 if this == 0, 1 if this > 0
 	 function bnSigNum() {
 	   if(this.s < 0) return -1;
 	   else if(this.t <= 0 || (this.t == 1 && this[0] <= 0)) return 0;
 	   else return 1;
 	 }
-	 
+
 	 // (protected) convert to radix string
 	 function bnpToRadix(b) {
 	   if(b == null) b = 10;
@@ -7675,7 +7675,7 @@ for (var k in syms) {
 	   }
 	   return z.intValue().toString(b) + r;
 	 }
-	 
+
 	 // (protected) convert from radix string
 	 function bnpFromRadix(s,b) {
 	   this.fromInt(0);
@@ -7702,7 +7702,7 @@ for (var k in syms) {
 	   }
 	   if(mi) BigInteger.ZERO.subTo(this,this);
 	 }
-	 
+
 	 // (protected) alternate constructor
 	 function bnpFromNumber(a,b,c) {
 	   if("number" == typeof b) {
@@ -7728,7 +7728,7 @@ for (var k in syms) {
 	     this.fromString(x,256);
 	   }
 	 }
-	 
+
 	 // (public) convert to bigendian byte array
 	 function bnToByteArray(encode_sign_bit) {
 	   var i = this.t, r = new Array();
@@ -7755,11 +7755,11 @@ for (var k in syms) {
 	   }
 	   return r;
 	 }
-	 
+
 	 function bnEquals(a) { return(this.compareTo(a)==0); }
 	 function bnMin(a) { return(this.compareTo(a)<0)?this:a; }
 	 function bnMax(a) { return(this.compareTo(a)>0)?this:a; }
-	 
+
 	 // (protected) r = this op a (bitwise)
 	 function bnpBitwiseTo(a,op,r) {
 	   var i, f, m = Math.min(a.t,this.t);
@@ -7777,23 +7777,23 @@ for (var k in syms) {
 	   r.s = op(this.s,a.s);
 	   r.clamp();
 	 }
-	 
+
 	 // (public) this & a
 	 function op_and(x,y) { return x&y; }
 	 function bnAnd(a) { var r = nbi(); this.bitwiseTo(a,op_and,r); return r; }
-	 
+
 	 // (public) this | a
 	 function op_or(x,y) { return x|y; }
 	 function bnOr(a) { var r = nbi(); this.bitwiseTo(a,op_or,r); return r; }
-	 
+
 	 // (public) this ^ a
 	 function op_xor(x,y) { return x^y; }
 	 function bnXor(a) { var r = nbi(); this.bitwiseTo(a,op_xor,r); return r; }
-	 
+
 	 // (public) this & ~a
 	 function op_andnot(x,y) { return x&~y; }
 	 function bnAndNot(a) { var r = nbi(); this.bitwiseTo(a,op_andnot,r); return r; }
-	 
+
 	 // (public) ~this
 	 function bnNot() {
 	   var r = nbi();
@@ -7802,21 +7802,21 @@ for (var k in syms) {
 	   r.s = ~this.s;
 	   return r;
 	 }
-	 
+
 	 // (public) this << n
 	 function bnShiftLeft(n) {
 	   var r = nbi();
 	   if(n < 0) this.rShiftTo(-n,r); else this.lShiftTo(n,r);
 	   return r;
 	 }
-	 
+
 	 // (public) this >> n
 	 function bnShiftRight(n) {
 	   var r = nbi();
 	   if(n < 0) this.lShiftTo(-n,r); else this.rShiftTo(n,r);
 	   return r;
 	 }
-	 
+
 	 // return index of lowest 1-bit in x, x < 2^31
 	 function lbit(x) {
 	   if(x == 0) return -1;
@@ -7828,7 +7828,7 @@ for (var k in syms) {
 	   if((x&1) == 0) ++r;
 	   return r;
 	 }
-	 
+
 	 // (public) returns index of lowest 1-bit (or -1 if none)
 	 function bnGetLowestSetBit() {
 	   for(var i = 0; i < this.t; ++i)
@@ -7836,44 +7836,44 @@ for (var k in syms) {
 	   if(this.s < 0) return this.t*this.DB;
 	   return -1;
 	 }
-	 
+
 	 // return number of 1 bits in x
 	 function cbit(x) {
 	   var r = 0;
 	   while(x != 0) { x &= x-1; ++r; }
 	   return r;
 	 }
-	 
+
 	 // (public) return number of set bits
 	 function bnBitCount() {
 	   var r = 0, x = this.s&this.DM;
 	   for(var i = 0; i < this.t; ++i) r += cbit(this[i]^x);
 	   return r;
 	 }
-	 
+
 	 // (public) true iff nth bit is set
 	 function bnTestBit(n) {
 	   var j = Math.floor(n/this.DB);
 	   if(j >= this.t) return(this.s!=0);
 	   return((this[j]&(1<<(n%this.DB)))!=0);
 	 }
-	 
+
 	 // (protected) this op (1<<n)
 	 function bnpChangeBit(n,op) {
 	   var r = BigInteger.ONE.shiftLeft(n);
 	   this.bitwiseTo(r,op,r);
 	   return r;
 	 }
-	 
+
 	 // (public) this | (1<<n)
 	 function bnSetBit(n) { return this.changeBit(n,op_or); }
-	 
+
 	 // (public) this & ~(1<<n)
 	 function bnClearBit(n) { return this.changeBit(n,op_andnot); }
-	 
+
 	 // (public) this ^ (1<<n)
 	 function bnFlipBit(n) { return this.changeBit(n,op_xor); }
-	 
+
 	 // (protected) r = this + a
 	 function bnpAddTo(a,r) {
 	   var i = 0, c = 0, m = Math.min(a.t,this.t);
@@ -7906,39 +7906,39 @@ for (var k in syms) {
 	   r.t = i;
 	   r.clamp();
 	 }
-	 
+
 	 // (public) this + a
 	 function bnAdd(a) { var r = nbi(); this.addTo(a,r); return r; }
-	 
+
 	 // (public) this - a
 	 function bnSubtract(a) { var r = nbi(); this.subTo(a,r); return r; }
-	 
+
 	 // (public) this * a
 	 function bnMultiply(a) { var r = nbi(); this.multiplyTo(a,r); return r; }
-	 
+
 	 // (public) this^2
 	 function bnSquare() { var r = nbi(); this.squareTo(r); return r; }
-	 
+
 	 // (public) this / a
 	 function bnDivide(a) { var r = nbi(); this.divRemTo(a,r,null); return r; }
-	 
+
 	 // (public) this % a
 	 function bnRemainder(a) { var r = nbi(); this.divRemTo(a,null,r); return r; }
-	 
+
 	 // (public) [this/a,this%a]
 	 function bnDivideAndRemainder(a) {
 	   var q = nbi(), r = nbi();
 	   this.divRemTo(a,q,r);
 	   return new Array(q,r);
 	 }
-	 
+
 	 // (protected) this *= n, this >= 0, 1 < n < DV
 	 function bnpDMultiply(n) {
 	   this[this.t] = this.am(0,n-1,this,0,0,this.t);
 	   ++this.t;
 	   this.clamp();
 	 }
-	 
+
 	 // (protected) this += n << w words, this >= 0
 	 function bnpDAddOffset(n,w) {
 	   if(n == 0) return;
@@ -7950,21 +7950,21 @@ for (var k in syms) {
 	     ++this[w];
 	   }
 	 }
-	 
+
 	 // A "null" reducer
 	 function NullExp() {}
 	 function nNop(x) { return x; }
 	 function nMulTo(x,y,r) { x.multiplyTo(y,r); }
 	 function nSqrTo(x,r) { x.squareTo(r); }
-	 
+
 	 NullExp.prototype.convert = nNop;
 	 NullExp.prototype.revert = nNop;
 	 NullExp.prototype.mulTo = nMulTo;
 	 NullExp.prototype.sqrTo = nSqrTo;
-	 
+
 	 // (public) this^e
 	 function bnPow(e) { return this.exp(e,new NullExp()); }
-	 
+
 	 // (protected) r = lower n words of "this * a", a.t <= n
 	 // "this" should be the larger one if appropriate.
 	 function bnpMultiplyLowerTo(a,n,r) {
@@ -7977,7 +7977,7 @@ for (var k in syms) {
 	   for(j = Math.min(a.t,n); i < j; ++i) this.am(0,a[i],r,i,0,n-i);
 	   r.clamp();
 	 }
-	 
+
 	 // (protected) r = "this * a" without lower n words, n > 0
 	 // "this" should be the larger one if appropriate.
 	 function bnpMultiplyUpperTo(a,n,r) {
@@ -7990,7 +7990,7 @@ for (var k in syms) {
 	   r.clamp();
 	   r.drShiftTo(1,r);
 	 }
-	 
+
 	 // Barrett modular reduction
 	 function Barrett(m) {
 	   // setup Barrett
@@ -8000,15 +8000,15 @@ for (var k in syms) {
 	   this.mu = this.r2.divide(m);
 	   this.m = m;
 	 }
-	 
+
 	 function barrettConvert(x) {
 	   if(x.s < 0 || x.t > 2*this.m.t) return x.mod(this.m);
 	   else if(x.compareTo(this.m) < 0) return x;
 	   else { var r = nbi(); x.copyTo(r); this.reduce(r); return r; }
 	 }
-	 
+
 	 function barrettRevert(x) { return x; }
-	 
+
 	 // x = x mod m (HAC 14.42)
 	 function barrettReduce(x) {
 	   x.drShiftTo(this.m.t-1,this.r2);
@@ -8019,19 +8019,19 @@ for (var k in syms) {
 	   x.subTo(this.r2,x);
 	   while(x.compareTo(this.m) >= 0) x.subTo(this.m,x);
 	 }
-	 
+
 	 // r = x^2 mod m; x != r
 	 function barrettSqrTo(x,r) { x.squareTo(r); this.reduce(r); }
-	 
+
 	 // r = x*y mod m; x,y != r
 	 function barrettMulTo(x,y,r) { x.multiplyTo(y,r); this.reduce(r); }
-	 
+
 	 Barrett.prototype.convert = barrettConvert;
 	 Barrett.prototype.revert = barrettRevert;
 	 Barrett.prototype.reduce = barrettReduce;
 	 Barrett.prototype.mulTo = barrettMulTo;
 	 Barrett.prototype.sqrTo = barrettSqrTo;
-	 
+
 	 // (public) this^e % m (HAC 14.85)
 	 function bnModPow(e,m) {
 	   var i = e.bitLength(), k, r = nbv(1), z;
@@ -8047,7 +8047,7 @@ for (var k in syms) {
 	     z = new Barrett(m);
 	   else
 	     z = new Montgomery(m);
-	 
+
 	   // precomputation
 	   var g = new Array(), n = 3, k1 = k-1, km = (1<<k)-1;
 	   g[1] = z.convert(this);
@@ -8060,7 +8060,7 @@ for (var k in syms) {
 	       n += 2;
 	     }
 	   }
-	 
+
 	   var j = e.t-1, w, is1 = true, r2 = nbi(), t;
 	   i = nbits(e[j])-1;
 	   while(j >= 0) {
@@ -8069,7 +8069,7 @@ for (var k in syms) {
 	       w = (e[j]&((1<<(i+1))-1))<<(k1-i);
 	       if(j > 0) w |= e[j-1]>>(this.DB+i-k1);
 	     }
-	 
+
 	     n = k;
 	     while((w&1) == 0) { w >>= 1; --n; }
 	     if((i -= n) < 0) { i += this.DB; --j; }
@@ -8082,7 +8082,7 @@ for (var k in syms) {
 	       if(n > 0) z.sqrTo(r,r2); else { t = r; r = r2; r2 = t; }
 	       z.mulTo(r2,g[w],r);
 	     }
-	 
+
 	     while(j >= 0 && (e[j]&(1<<i)) == 0) {
 	       z.sqrTo(r,r2); t = r; r = r2; r2 = t;
 	       if(--i < 0) { i = this.DB-1; --j; }
@@ -8090,7 +8090,7 @@ for (var k in syms) {
 	   }
 	   return z.revert(r);
 	 }
-	 
+
 	 // (public) gcd(this,a) (HAC 14.54)
 	 function bnGCD(a) {
 	   var x = (this.s<0)?this.negate():this.clone();
@@ -8118,7 +8118,7 @@ for (var k in syms) {
 	   if(g > 0) y.lShiftTo(g,y);
 	   return y;
 	 }
-	 
+
 	 // (protected) this % n, n < 2^26
 	 function bnpModInt(n) {
 	   if(n <= 0) return 0;
@@ -8128,7 +8128,7 @@ for (var k in syms) {
 	     else for(var i = this.t-1; i >= 0; --i) r = (d*r+this[i])%n;
 	   return r;
 	 }
-	 
+
 	 // (public) 1/this % m (HAC 14.61)
 	 function bnModInverse(m) {
 	   var ac = m.isEven();
@@ -8170,10 +8170,10 @@ for (var k in syms) {
 	   if(d.signum() < 0) d.addTo(m,d); else return d;
 	   if(d.signum() < 0) return d.add(m); else return d;
 	 }
-	 
+
 	 var lowprimes = [2,3,5,7,11,13,17,19,23,29,31,37,41,43,47,53,59,61,67,71,73,79,83,89,97,101,103,107,109,113,127,131,137,139,149,151,157,163,167,173,179,181,191,193,197,199,211,223,227,229,233,239,241,251,257,263,269,271,277,281,283,293,307,311,313,317,331,337,347,349,353,359,367,373,379,383,389,397,401,409,419,421,431,433,439,443,449,457,461,463,467,479,487,491,499,503,509,521,523,541,547,557,563,569,571,577,587,593,599,601,607,613,617,619,631,641,643,647,653,659,661,673,677,683,691,701,709,719,727,733,739,743,751,757,761,769,773,787,797,809,811,821,823,827,829,839,853,857,859,863,877,881,883,887,907,911,919,929,937,941,947,953,967,971,977,983,991,997];
 	 var lplim = (1<<26)/lowprimes[lowprimes.length-1];
-	 
+
 	 // (public) test primality with certainty >= 1-.5^t
 	 function bnIsProbablePrime(t) {
 	   var i, x = this.abs();
@@ -8192,9 +8192,9 @@ for (var k in syms) {
 	   }
 	   return x.millerRabin(t);
 	 }
-	 
+
 	 /* added by Recurity Labs */
-	 
+
 	 function nbits(x) {
 	 	var n = 1, t;
 	 	if ((t = x >>> 16) != 0) {
@@ -8219,7 +8219,7 @@ for (var k in syms) {
 	 	}
 	 	return n;
 	 }
-	 
+
 	 function bnToMPI () {
 	 	var ba = this.toByteArray();
 	 	var size = (ba.length-1)*8+nbits(ba[0]);
@@ -8230,7 +8230,7 @@ for (var k in syms) {
 	 	return result;
 	 }
 	 /* END of addition */
-	 
+
 	 // (protected) true if probably prime (HAC 4.24, Miller-Rabin)
 	 function bnpMillerRabin(t) {
 	   var n1 = this.subtract(BigInteger.ONE);
@@ -8255,7 +8255,7 @@ for (var k in syms) {
 	   }
 	   return true;
 	 }
-	 
+
 	 // protected
 	 BigInteger.prototype.chunkSize = bnpChunkSize;
 	 BigInteger.prototype.toRadix = bnpToRadix;
@@ -8270,7 +8270,7 @@ for (var k in syms) {
 	 BigInteger.prototype.multiplyUpperTo = bnpMultiplyUpperTo;
 	 BigInteger.prototype.modInt = bnpModInt;
 	 BigInteger.prototype.millerRabin = bnpMillerRabin;
-	 
+
 	 // public
 	 BigInteger.prototype.clone = bnClone;
 	 BigInteger.prototype.intValue = bnIntValue;
@@ -8306,15 +8306,15 @@ for (var k in syms) {
 	 BigInteger.prototype.gcd = bnGCD;
 	 BigInteger.prototype.isProbablePrime = bnIsProbablePrime;
 	 BigInteger.prototype.toMPI = bnToMPI;
-	 
+
 	 // JSBN-specific extension
 	 BigInteger.prototype.square = bnSquare;
-	 
+
 	 function bigint_or_number (x) {
 	 	if (typeof(x) === 'number') { return nbv(x); }
 	 	else { return x; }
 	 };
-	 
+
 	 function buffer_to_ui8a (b) {
 	 	var l = b.length;
 	 	var ret = new Uint8Array(l);
@@ -8323,82 +8323,82 @@ for (var k in syms) {
 	 	}
 	 	return ret;
 	 };
-	 
+
 	 // Match this function to the bigint/bignum native JS interface
 	 // in node.  Typically we're doing it the other way around.
 	 BigInteger.prototype.fromBuffer = function (buf) {
-	     // the last 'true' is for 'unsigned', our hack to jsbn.js to 
+	     // the last 'true' is for 'unsigned', our hack to jsbn.js to
 	     // shut off DER-integer interpretation
 	 	this.fromString(buffer_to_ui8a(buf), 256, true);
 	 	return this;
 	 };
-	 
+
 	 BigInteger.fromBuffer = function (buf) {
 	 	var ret = nbi();
 	 	ret.fromBuffer(buf);
 	 	return ret;
 	 };
-	 
+
 	 BigInteger.random_nbit = function (nbits, rf) {
 	 	return new BigInteger(nbits, rf);
 	 };
-	 
+
 	 BigInteger.prototype.inspect = function () {
 	 	return "<BigInteger/pure " + this.toString() + ">";
 	 };
-	 
+
 	 // For compatability with the 'bigi' package used by ecurve
 	 BigInteger.fromHex = function (s) {
-	 
+
 	 	if (!s.match(/^[a-fA-F0-9]*$/)) { throw new Error("hex string invalid: "+ s); }
 	 	if (s.length % 2 != 0) { throw new Error("got an odd-length hex-string"); }
 	 	return new BigInteger(s, 16);
 	 };
-	 
+
 	 BigInteger.valueOf = function (x) {
 	 	return bigint_or_number(x);
 	 };
-	 
+
 	 BigInteger.prototype.toBuffer = function (size) {
 	 	var x;
 	 	if (!size) { size = 0; }
 	 	var s = this.signum();
 	 	if (s == 0) { x = []; }
 	 	else {x = this.toByteArray(s < 0); }
-	 	var ret = new Buffer(x);
+	 	var ret = Buffer.from(x);
 	 	if ((diff = size - x.length) > 0) {
-	 		var pad = new Buffer(diff);
+	 		var pad = Buffer.from(diff);
 	 		pad.fill(0);
 	 		ret = Buffer.concat([pad,ret]);
 	 	}
 	 	return ret;
 	 };
-	 
+
 	 BigInteger.prototype.byteLength = function () { return this.t; }
-	 
+
 	 BigInteger.prototype.toDERInteger = function () {
 	 	return this.toByteArray(true);
 	 };
-	 
+
 	 BigInteger.fromDERInteger = function (buf) {
 	 	var x = nbi();
 	 	x.fromString(buf, 256, false);
 	 	return x;
 	 };
-	 
+
 	 BigInteger.prototype.toByteArrayUnsigned = function () {
 	 	return new Uint8Array(this.toBuffer());
 	 };
-	 
+
 	 BigInteger.fromByteArrayUnsigned = function (b) {
-	 	return BigInteger.fromBuffer(new Buffer(b));
+	 	return BigInteger.fromBuffer(Buffer.from(b));
 	 };
-	 
+
 	 BigInteger.prototype.toHex = function (size) {
 	 	return this.toBuffer(size).toString('hex');
 	 };
-	 
-	 module.exports = { 
+
+	 module.exports = {
 	 	BigInteger : BigInteger,
 	 	nbi : nbi,
 	 	nbv : nbv,
@@ -9809,7 +9809,7 @@ function crt(msg, priv) {
   var h = m1.isub(m2).imul(qinv).umod(p);
   h.imul(q);
   m2.iadd(h);
-  return new Buffer(m2.imul(blinds.unblinder).umod(priv.modulus).toArray(false, len));
+  return Buffer.from(m2.imul(blinds.unblinder).umod(priv.modulus).toArray(false, len));
 }
 crt.getr = getr;
 function getr(priv) {
@@ -9999,7 +9999,7 @@ var verify = require('./verify')
 
 var algorithms = require('./algorithms.json')
 Object.keys(algorithms).forEach(function (key) {
-  algorithms[key].id = new Buffer(algorithms[key].id, 'hex')
+  algorithms[key].id = Buffer.from(algorithms[key].id, 'hex')
   algorithms[key.toLowerCase()] = algorithms[key]
 })
 
@@ -10022,7 +10022,7 @@ Sign.prototype._write = function _write (data, _, done) {
 }
 
 Sign.prototype.update = function update (data, enc) {
-  if (typeof data === 'string') data = new Buffer(data, enc)
+  if (typeof data === 'string') data = Buffer.from(data, enc)
 
   this._hash.update(data)
   return this
@@ -10054,14 +10054,14 @@ Verify.prototype._write = function _write (data, _, done) {
 }
 
 Verify.prototype.update = function update (data, enc) {
-  if (typeof data === 'string') data = new Buffer(data, enc)
+  if (typeof data === 'string') data = Buffer.from(data, enc)
 
   this._hash.update(data)
   return this
 }
 
 Verify.prototype.verify = function verifyMethod (key, sig, enc) {
-  if (typeof sig === 'string') sig = new Buffer(sig, enc)
+  if (typeof sig === 'string') sig = Buffer.from(sig, enc)
 
   this.end()
   var hash = this._hash.digest()
@@ -10126,7 +10126,7 @@ function ecSign (hash, priv) {
   var key = curve.keyFromPrivate(priv.privateKey)
   var out = key.sign(hash)
 
-  return new Buffer(out.toDER())
+  return Buffer.from(out.toDER())
 }
 
 function dsaSign (hash, priv, algo) {
@@ -10162,25 +10162,25 @@ function toDER (r, s) {
   var total = r.length + s.length + 4
   var res = [ 0x30, total, 0x02, r.length ]
   res = res.concat(r, [ 0x02, s.length ], s)
-  return new Buffer(res)
+  return Buffer.from(res)
 }
 
 function getKey (x, q, hash, algo) {
-  x = new Buffer(x.toArray())
+  x = Buffer.from(x.toArray())
   if (x.length < q.byteLength()) {
-    var zeros = new Buffer(q.byteLength() - x.length)
+    var zeros = Buffer.from(q.byteLength() - x.length)
     zeros.fill(0)
     x = Buffer.concat([ zeros, x ])
   }
   var hlen = hash.length
   var hbits = bits2octets(hash, q)
-  var v = new Buffer(hlen)
+  var v = Buffer.from(hlen)
   v.fill(1)
-  var k = new Buffer(hlen)
+  var k = Buffer.from(hlen)
   k.fill(0)
-  k = createHmac(algo, k).update(v).update(new Buffer([ 0 ])).update(x).update(hbits).digest()
+  k = createHmac(algo, k).update(v).update(Buffer.from([ 0 ])).update(x).update(hbits).digest()
   v = createHmac(algo, k).update(v).digest()
-  k = createHmac(algo, k).update(v).update(new Buffer([ 1 ])).update(x).update(hbits).digest()
+  k = createHmac(algo, k).update(v).update(Buffer.from([ 1 ])).update(x).update(hbits).digest()
   v = createHmac(algo, k).update(v).digest()
   return { k: k, v: v }
 }
@@ -10195,9 +10195,9 @@ function bits2int (obits, q) {
 function bits2octets (bits, q) {
   bits = bits2int(bits, q)
   bits = bits.mod(q)
-  var out = new Buffer(bits.toArray())
+  var out = Buffer.from(bits.toArray())
   if (out.length < q.byteLength()) {
-    var zeros = new Buffer(q.byteLength() - out.length)
+    var zeros = Buffer.from(q.byteLength() - out.length)
     zeros.fill(0)
     out = Buffer.concat([ zeros, out ])
   }
@@ -10209,7 +10209,7 @@ function makeKey (q, kv, algo) {
   var k
 
   do {
-    t = new Buffer(0)
+    t = Buffer.from(0)
 
     while (t.length * 8 < q.bitLength()) {
       kv.v = createHmac(algo, kv.k).update(kv.v).digest()
@@ -10217,7 +10217,7 @@ function makeKey (q, kv, algo) {
     }
 
     k = bits2int(t, q)
-    kv.k = createHmac(algo, kv.k).update(kv.v).update(new Buffer([ 0 ])).digest()
+    kv.k = createHmac(algo, kv.k).update(kv.v).update(Buffer.from([ 0 ])).digest()
     kv.v = createHmac(algo, kv.k).update(kv.v).digest()
   } while (k.cmp(q) !== -1)
 
@@ -10266,12 +10266,12 @@ function verify (sig, hash, key, signType, tag) {
   while (++i < hash.length) {
     pad.push(hash[i])
   }
-  pad = new Buffer(pad)
+  pad = Buffer.from(pad)
   var red = BN.mont(pub.modulus)
   sig = new BN(sig).toRed(red)
 
   sig = sig.redPow(new BN(pub.publicExponent))
-  sig = new Buffer(sig.fromRed().toArray())
+  sig = Buffer.from(sig.fromRed().toArray())
   var out = padNum < 8 ? 1 : 0
   len = Math.min(sig.length, pad.length)
   if (sig.length !== pad.length) out = 1
@@ -10324,7 +10324,7 @@ module.exports = verify
 (function (Buffer){
 module.exports = function xor (a, b) {
   var length = Math.min(a.length, b.length)
-  var buffer = new Buffer(length)
+  var buffer = Buffer.from(length)
 
   for (var i = 0; i < length; ++i) {
     buffer[i] = a[i] ^ b[i]
@@ -10501,7 +10501,7 @@ function from (value, encodingOrOffset, length) {
 }
 
 /**
- * Functionally equivalent to Buffer(arg, encoding) but throws a TypeError
+ * Functionally equivalent to Buffer.from(arg, encoding) but throws a TypeError
  * if value is a number.
  * Buffer.from(str[, encoding])
  * Buffer.from(array)
@@ -10555,7 +10555,7 @@ function allocUnsafe (size) {
 }
 
 /**
- * Equivalent to Buffer(num), by default creates a non-zero-filled Buffer instance.
+ * Equivalent to Buffer.from(num), by default creates a non-zero-filled Buffer instance.
  * */
 Buffer.allocUnsafe = function (size) {
   return allocUnsafe(size)
@@ -12390,7 +12390,7 @@ ECDH.prototype.generateKeys = function (enc, format) {
 ECDH.prototype.computeSecret = function (other, inenc, enc) {
   inenc = inenc || 'utf8'
   if (!Buffer.isBuffer(other)) {
-    other = new Buffer(other, inenc)
+    other = Buffer.from(other, inenc)
   }
   var otherPub = this.curve.keyFromPublic(other).getPublic()
   var out = otherPub.mul(this.keys.getPrivate()).getX()
@@ -12416,7 +12416,7 @@ ECDH.prototype.getPrivateKey = function (enc) {
 ECDH.prototype.setPublicKey = function (pub, enc) {
   enc = enc || 'utf8'
   if (!Buffer.isBuffer(pub)) {
-    pub = new Buffer(pub, enc)
+    pub = Buffer.from(pub, enc)
   }
   this.keys._importPublic(pub)
   return this
@@ -12425,7 +12425,7 @@ ECDH.prototype.setPublicKey = function (pub, enc) {
 ECDH.prototype.setPrivateKey = function (priv, enc) {
   enc = enc || 'utf8'
   if (!Buffer.isBuffer(priv)) {
-    priv = new Buffer(priv, enc)
+    priv = Buffer.from(priv, enc)
   }
 
   var _priv = new BN(priv)
@@ -12439,9 +12439,9 @@ function formatReturnValue (bn, enc, len) {
   if (!Array.isArray(bn)) {
     bn = bn.toArray()
   }
-  var buf = new Buffer(bn)
+  var buf = Buffer.from(bn)
   if (len && buf.length < len) {
-    var zeros = new Buffer(len - buf.length)
+    var zeros = Buffer.from(len - buf.length)
     zeros.fill(0)
     buf = Buffer.concat([zeros, buf])
   }
@@ -13390,8 +13390,8 @@ var primes = require('./lib/primes.json')
 var DH = require('./lib/dh')
 
 function getDiffieHellman (mod) {
-  var prime = new Buffer(primes[mod].prime, 'hex')
-  var gen = new Buffer(primes[mod].gen, 'hex')
+  var prime = Buffer.from(primes[mod].prime, 'hex')
+  var gen = Buffer.from(primes[mod].gen, 'hex')
 
   return new DH(prime, gen)
 }
@@ -13407,10 +13407,10 @@ function createDiffieHellman (prime, enc, generator, genc) {
 
   enc = enc || 'binary'
   genc = genc || 'binary'
-  generator = generator || new Buffer([2])
+  generator = generator || Buffer.from([2])
 
   if (!Buffer.isBuffer(generator)) {
-    generator = new Buffer(generator, genc)
+    generator = Buffer.from(generator, genc)
   }
 
   if (typeof prime === 'number') {
@@ -13418,7 +13418,7 @@ function createDiffieHellman (prime, enc, generator, genc) {
   }
 
   if (!Buffer.isBuffer(prime)) {
-    prime = new Buffer(prime, enc)
+    prime = Buffer.from(prime, enc)
   }
 
   return new DH(prime, generator, true)
@@ -13445,7 +13445,7 @@ module.exports = DH;
 function setPublicKey(pub, enc) {
   enc = enc || 'utf8';
   if (!Buffer.isBuffer(pub)) {
-    pub = new Buffer(pub, enc);
+    pub = Buffer.from(pub, enc);
   }
   this._pub = new BN(pub);
   return this;
@@ -13454,7 +13454,7 @@ function setPublicKey(pub, enc) {
 function setPrivateKey(priv, enc) {
   enc = enc || 'utf8';
   if (!Buffer.isBuffer(priv)) {
-    priv = new Buffer(priv, enc);
+    priv = Buffer.from(priv, enc);
   }
   this._priv = new BN(priv);
   return this;
@@ -13550,10 +13550,10 @@ DH.prototype.computeSecret = function (other) {
   other = new BN(other);
   other = other.toRed(this._prime);
   var secret = other.redPow(this._priv).fromRed();
-  var out = new Buffer(secret.toArray());
+  var out = Buffer.from(secret.toArray());
   var prime = this.getPrime();
   if (out.length < prime.length) {
-    var front = new Buffer(prime.length - out.length);
+    var front = Buffer.from(prime.length - out.length);
     front.fill(0);
     out = Buffer.concat([front, out]);
   }
@@ -13579,7 +13579,7 @@ DH.prototype.getGenerator = function (enc) {
 DH.prototype.setGenerator = function (gen, enc) {
   enc = enc || 'utf8';
   if (!Buffer.isBuffer(gen)) {
-    gen = new Buffer(gen, enc);
+    gen = Buffer.from(gen, enc);
   }
   this.__gen = gen;
   this._gen = new BN(gen);
@@ -13587,7 +13587,7 @@ DH.prototype.setGenerator = function (gen, enc) {
 };
 
 function formatReturnValue(bn, enc) {
-  var buf = new Buffer(bn.toArray());
+  var buf = Buffer.from(bn.toArray());
   if (!enc) {
     return buf;
   } else {
@@ -21066,7 +21066,7 @@ var Uint64BE, Int64BE, Uint64LE, Int64LE;
     var offset = this.offset;
     storage = BUFFER;
     if (raw !== false && offset === 0 && buffer.length === 8 && Buffer.isBuffer(buffer)) return buffer;
-    var dest = new BUFFER(8);
+    var dest = Buffer.from(8);
     fromArray(dest, 0, buffer, offset);
     return dest;
   }
@@ -21662,7 +21662,7 @@ exports.from = from;
  */
 
 function alloc(size) {
-  return new Buffer(size);
+  return Buffer.from(size);
 }
 
 /**
@@ -21688,7 +21688,7 @@ function from(value) {
   if (Buffer.from && Buffer.from.length !== 1) {
     return Buffer.from(value); // node v6+
   } else {
-    return new Buffer(value); // node v4
+    return Buffer.from(value); // node v4
   }
 }
 
@@ -22558,7 +22558,7 @@ function getEncoderMethods() {
     // minimum buffer size
     length = Math.max(length, this.minBufferSize);
 
-    // allocate new buffer
+    // allocate Buffer.from
     this.buffer = this.bufferish.alloc(length);
     this.start = 0;
     this.offset = req;
@@ -23618,7 +23618,7 @@ function write0(type) {
   };
 
   exports.u2b = u2b = function(u) {
-    return new Buffer(u);
+    return Buffer.from(u);
   };
 
   exports.Base = Base = (function() {
@@ -23834,11 +23834,11 @@ function write0(type) {
     };
 
     Sodium.prototype.scalarmult_base = function(n) {
-      return new Buffer(this.lib.c.crypto_scalarmult_base(n));
+      return Buffer.from(this.lib.c.crypto_scalarmult_base(n));
     };
 
     Sodium.prototype.scalarmult = function(n, P) {
-      return new Buffer(this.lib.c.crypto_scalarmult(n, P));
+      return Buffer.from(this.lib.c.crypto_scalarmult(n, P));
     };
 
     return Sodium;
@@ -23873,7 +23873,7 @@ function write0(type) {
       err = null;
       if (detached) {
         if (payload == null) {
-          payload = new Buffer([]);
+          payload = Buffer.from([]);
         }
         if (!this.lib.js.sign.detached.verify(b2u(payload), b2u(sig), b2u(this.publicKey))) {
           err = new Error("Signature failed to verify");
@@ -23952,11 +23952,11 @@ function write0(type) {
     };
 
     TweetNaCl.prototype.scalarmult_base = function(n) {
-      return new Buffer(this.lib.js.scalarMult.base(n));
+      return Buffer.from(this.lib.js.scalarMult.base(n));
     };
 
     TweetNaCl.prototype.scalarmult = function(n, P) {
-      return new Buffer(this.lib.js.scalarMult(n, P));
+      return Buffer.from(this.lib.js.scalarMult(n, P));
     };
 
     return TweetNaCl;
@@ -24110,7 +24110,7 @@ MD5.prototype._digest = function () {
   this._update()
 
   // produce result
-  var buffer = new Buffer(16)
+  var buffer = Buffer.from(16)
   buffer.writeInt32LE(this._a, 0)
   buffer.writeInt32LE(this._b, 4)
   buffer.writeInt32LE(this._c, 8)
@@ -24350,7 +24350,7 @@ utils.encode = function encode(arr, enc) {
       this.out_block_len = Math.ceil(8 * this.in_block_len / this.log_base);
       this.max_encoded_bits_per_block = Math.floor(this.log_base * this.out_block_len);
       this.decode_map = {};
-      _ref1 = new Buffer(this.alphabet, 'utf8');
+      _ref1 = Buffer.from(this.alphabet, 'utf8');
       for (i = _i = 0, _len = _ref1.length; _i < _len; i = ++_i) {
         a = _ref1[i];
         this.decode_map[a] = i;
@@ -24360,7 +24360,7 @@ utils.encode = function encode(arr, enc) {
     Encoding.prototype.encode = function(src, opts) {
       var i, inc, old_shift, _;
       if (src == null) {
-        return new Buffer('');
+        return Buffer.from('');
       }
       if (opts != null ? opts.old_shift : void 0) {
         old_shift = opts.old_shift;
@@ -24436,14 +24436,14 @@ utils.encode = function encode(arr, enc) {
     Encoding.prototype.decode = function(src, opts) {
       var bufs, dst, old_shift;
       if (src == null) {
-        return new Buffer('');
+        return Buffer.from('');
       }
       if (opts != null ? opts.old_shift : void 0) {
         old_shift = opts.old_shift;
       } else {
         old_shift = false;
       }
-      src = new Buffer(src, 'utf8');
+      src = Buffer.from(src, 'utf8');
       bufs = (function() {
         var _ref1, _results;
         _results = [];
@@ -24470,10 +24470,10 @@ utils.encode = function encode(arr, enc) {
           break;
         }
       }
-      ret = consumed === 0 ? new Buffer([]) : (decoded_len = this.decoded_len(consumed), old_shift ? res = res.shiftRight(this.extra_bits({
+      ret = consumed === 0 ? Buffer.from([]) : (decoded_len = this.decoded_len(consumed), old_shift ? res = res.shiftRight(this.extra_bits({
         encoded_len: consumed,
         decoded_len: decoded_len
-      })) : void 0, res = new Buffer(res.toByteArray()), padlen = this.decoded_len(consumed) - res.length, pad = new Buffer((function() {
+      })) : void 0, res = Buffer.from(res.toByteArray()), padlen = this.decoded_len(consumed) - res.length, pad = Buffer.from((function() {
         var _j, _results;
         _results = [];
         for (i = _j = 0; _j < padlen; i = _j += 1) {
@@ -24553,7 +24553,7 @@ utils.encode = function encode(arr, enc) {
       this.encoder = encoder;
       f = (function(_this) {
         return function(x, cb) {
-          return cb(null, new Buffer(_this.encoder.encode(x)));
+          return cb(null, Buffer.from(_this.encoder.encode(x)));
         };
       })(this);
       StreamEncoder.__super__.constructor.call(this, {
@@ -24575,7 +24575,7 @@ utils.encode = function encode(arr, enc) {
       this.decoder = decoder;
       f = (function(_this) {
         return function(x, cb) {
-          return cb(null, new Buffer(_this.decoder.decode(x)));
+          return cb(null, Buffer.from(_this.decoder.decode(x)));
         };
       })(this);
       StreamDecoder.__super__.constructor.call(this, {
@@ -24631,7 +24631,7 @@ utils.encode = function encode(arr, enc) {
       }
       if (chunk.length < this.block_size) {
         this.extra = chunk;
-        return cb(null, new Buffer(''));
+        return cb(null, Buffer.from(''));
       }
       blocks = [];
       (function(_this) {
@@ -25009,11 +25009,11 @@ module.exports = function (okey, password) {
   var decrypted
   if (!match) {
     var match2 = key.match(fullRegex)
-    decrypted = new Buffer(match2[2].replace(/[\r\n]/g, ''), 'base64')
+    decrypted = Buffer.from(match2[2].replace(/[\r\n]/g, ''), 'base64')
   } else {
     var suite = 'aes' + match[1]
-    var iv = new Buffer(match[2], 'hex')
-    var cipherText = new Buffer(match[3].replace(/[\r\n]/g, ''), 'base64')
+    var iv = Buffer.from(match[2], 'hex')
+    var cipherText = Buffer.from(match[3].replace(/[\r\n]/g, ''), 'base64')
     var cipherKey = evp(password, iv.slice(0, 8), parseInt(match[1], 10)).key
     var out = []
     var cipher = ciphers.createDecipheriv(suite, cipherKey, iv)
@@ -25045,7 +25045,7 @@ function parseKeys (buffer) {
     buffer = buffer.key
   }
   if (typeof buffer === 'string') {
-    buffer = new Buffer(buffer)
+    buffer = Buffer.from(buffer)
   }
 
   var stripped = fixProc(buffer, password)
@@ -25645,7 +25645,7 @@ exports.publicDecrypt = function publicDecrypt(key, buf) {
 (function (Buffer){
 var createHash = require('create-hash');
 module.exports = function (seed, len) {
-  var t = new Buffer('');
+  var t = Buffer.from('');
   var  i = 0, c;
   while (t.length < len) {
     c = i2ops(i++);
@@ -25655,7 +25655,7 @@ module.exports = function (seed, len) {
 };
 
 function i2ops(c) {
-  var out = new Buffer(4);
+  var out = Buffer.from(4);
   out.writeUInt32BE(c,0);
   return out;
 }
@@ -25678,7 +25678,7 @@ module.exports = function privateDecrypt(private_key, enc, reverse) {
   } else {
     padding = 4;
   }
-  
+
   var key = parseKeys(private_key);
   var k = key.modulus.byteLength();
   if (enc.length > k || new bn(enc).cmp(key.modulus) >= 0) {
@@ -25690,7 +25690,7 @@ module.exports = function privateDecrypt(private_key, enc, reverse) {
   } else {
     msg = crt(enc, key);
   }
-  var zBuffer = new Buffer(k - msg.length);
+  var zBuffer = Buffer.from(k - msg.length);
   zBuffer.fill(0);
   msg = Buffer.concat([zBuffer, msg], k);
   if (padding === 4) {
@@ -25708,7 +25708,7 @@ function oaep(key, msg){
   var n = key.modulus;
   var k = key.modulus.byteLength();
   var mLen = msg.length;
-  var iHash = createHash('sha1').update(new Buffer('')).digest();
+  var iHash = createHash('sha1').update(Buffer.from('')).digest();
   var hLen = iHash.length;
   var hLen2 = 2 * hLen;
   if (msg[0] !== 0) {
@@ -25756,8 +25756,8 @@ function pkcs1(key, msg, reverse){
   return  msg.slice(i);
 }
 function compare(a, b){
-  a = new Buffer(a);
-  b = new Buffer(b);
+  a = Buffer.from(a);
+  b = Buffer.from(b);
   var dif = 0;
   var len = a.length;
   if (a.length !== b.length) {
@@ -25821,19 +25821,19 @@ module.exports = function publicEncrypt(public_key, msg, reverse) {
 function oaep(key, msg){
   var k = key.modulus.byteLength();
   var mLen = msg.length;
-  var iHash = createHash('sha1').update(new Buffer('')).digest();
+  var iHash = createHash('sha1').update(Buffer.from('')).digest();
   var hLen = iHash.length;
   var hLen2 = 2 * hLen;
   if (mLen > k - hLen2 - 2) {
     throw new Error('message too long');
   }
-  var ps = new Buffer(k - mLen - hLen2 - 2);
+  var ps = Buffer.from(k - mLen - hLen2 - 2);
   ps.fill(0);
   var dblen = k - hLen - 1;
   var seed = randomBytes(hLen);
-  var maskedDb = xor(Buffer.concat([iHash, ps, new Buffer([1]), msg], dblen), mgf(seed, dblen));
+  var maskedDb = xor(Buffer.concat([iHash, ps, Buffer.from([1]), msg], dblen), mgf(seed, dblen));
   var maskedSeed = xor(seed, mgf(maskedDb, hLen));
-  return new bn(Buffer.concat([new Buffer([0]), maskedSeed, maskedDb], k));
+  return new bn(Buffer.concat([Buffer.from([0]), maskedSeed, maskedDb], k));
 }
 function pkcs1(key, msg, reverse){
   var mLen = msg.length;
@@ -25843,15 +25843,15 @@ function pkcs1(key, msg, reverse){
   }
   var ps;
   if (reverse) {
-    ps = new Buffer(k - mLen - 3);
+    ps = Buffer.from(k - mLen - 3);
     ps.fill(0xff);
   } else {
     ps = nonZero(k - mLen - 3);
   }
-  return new bn(Buffer.concat([new Buffer([0, reverse?1:2]), ps, new Buffer([0]), msg], k));
+  return new bn(Buffer.concat([Buffer.from([0, reverse?1:2]), ps, Buffer.from([0]), msg], k));
 }
 function nonZero(len, crypto) {
-  var out = new Buffer(len);
+  var out = Buffer.from(len);
   var i = 0;
   var cache = randomBytes(len*2);
   var cur = 0;
@@ -25873,7 +25873,7 @@ function nonZero(len, crypto) {
 (function (Buffer){
 var bn = require('bn.js');
 function withPublic(paddedMsg, key) {
-  return new Buffer(paddedMsg
+  return Buffer.from(paddedMsg
     .toRed(bn.mont(key.modulus))
     .redPow(new bn(key.publicExponent))
     .fromRed()
@@ -26362,7 +26362,7 @@ function ReadableState(options, stream) {
   // A linked list is used to store data chunks instead of an array because the
   // linked list can remove elements from the beginning faster than
   // array.shift()
-  this.buffer = new BufferList();
+  this.buffer = Buffer.fromList();
   this.length = 0;
   this.pipes = null;
   this.pipesCount = 0;
@@ -28461,7 +28461,7 @@ RIPEMD160.prototype._digest = function () {
   this._update()
 
   // produce result
-  var buffer = Buffer.alloc ? Buffer.alloc(20) : new Buffer(20)
+  var buffer = Buffer.alloc ? Buffer.alloc(20) : Buffer.from(20)
   buffer.writeInt32LE(this._a, 0)
   buffer.writeInt32LE(this._b, 4)
   buffer.writeInt32LE(this._c, 8)
@@ -28516,7 +28516,7 @@ if (Buffer.from && Buffer.alloc && Buffer.allocUnsafe && Buffer.allocUnsafeSlow)
 }
 
 function SafeBuffer (arg, encodingOrOffset, length) {
-  return Buffer(arg, encodingOrOffset, length)
+  return Buffer.from(arg, encodingOrOffset, length)
 }
 
 // Copy static methods from Buffer
@@ -28526,14 +28526,14 @@ SafeBuffer.from = function (arg, encodingOrOffset, length) {
   if (typeof arg === 'number') {
     throw new TypeError('Argument must not be a number')
   }
-  return Buffer(arg, encodingOrOffset, length)
+  return Buffer.from(arg, encodingOrOffset, length)
 }
 
 SafeBuffer.alloc = function (size, fill, encoding) {
   if (typeof size !== 'number') {
     throw new TypeError('Argument must be a number')
   }
-  var buf = Buffer(size)
+  var buf = Buffer.from(size)
   if (fill !== undefined) {
     if (typeof encoding === 'string') {
       buf.fill(fill, encoding)
@@ -28550,7 +28550,7 @@ SafeBuffer.allocUnsafe = function (size) {
   if (typeof size !== 'number') {
     throw new TypeError('Argument must be a number')
   }
-  return Buffer(size)
+  return Buffer.from(size)
 }
 
 SafeBuffer.allocUnsafeSlow = function (size) {
@@ -32052,7 +32052,7 @@ nacl.util.encodeUTF8 = function(arr) {
 
 nacl.util.encodeBase64 = function(arr) {
   if (typeof btoa === 'undefined') {
-    return (new Buffer(arr)).toString('base64');
+    return (Buffer.from(arr)).toString('base64');
   } else {
     var i, s = [], len = arr.length;
     for (i = 0; i < len; i++) s.push(String.fromCharCode(arr[i]));
@@ -32062,7 +32062,7 @@ nacl.util.encodeBase64 = function(arr) {
 
 nacl.util.decodeBase64 = function(s) {
   if (typeof atob === 'undefined') {
-    return new Uint8Array(Array.prototype.slice.call(new Buffer(s, 'base64'), 0));
+    return new Uint8Array(Array.prototype.slice.call(Buffer.from(s, 'base64'), 0));
   } else {
     var i, d = atob(s), b = new Uint8Array(d.length);
     for (i = 0; i < d.length; i++) b[i] = d.charCodeAt(i);
@@ -32306,7 +32306,7 @@ exports.encodingLength = function () {
 }
 
 exports.encode = function (num, buf, offset) {
-  if (!buf) buf = new Buffer(8)
+  if (!buf) buf = Buffer.from(8)
   if (!offset) offset = 0
 
   var top = Math.floor(num / UINT_32_MAX)
@@ -32320,7 +32320,7 @@ exports.encode = function (num, buf, offset) {
 exports.decode = function (buf, offset) {
   if (!offset) offset = 0
 
-  if (!buf) buf = new Buffer(4)
+  if (!buf) buf = Buffer.from(4)
   if (!offset) offset = 0
 
   var top = buf.readUInt32BE(offset)
@@ -33061,13 +33061,13 @@ Script.prototype.runInContext = function (context) {
     if (!(context instanceof Context)) {
         throw new TypeError("needs a 'context' argument.");
     }
-    
+
     var iframe = document.createElement('iframe');
     if (!iframe.style) iframe.style = {};
     iframe.style.display = 'none';
-    
+
     document.body.appendChild(iframe);
-    
+
     var win = iframe.contentWindow;
     var wEval = win.eval, wExecScript = win.execScript;
 
@@ -33076,7 +33076,7 @@ Script.prototype.runInContext = function (context) {
         wExecScript.call(win, 'null');
         wEval = win.eval;
     }
-    
+
     forEach(Object_keys(context), function (key) {
         win[key] = context[key];
     });
@@ -33085,11 +33085,11 @@ Script.prototype.runInContext = function (context) {
             win[key] = context[key];
         }
     });
-    
+
     var winKeys = Object_keys(win);
 
     var res = wEval.call(win, this.code);
-    
+
     forEach(Object_keys(win), function (key) {
         // Avoid copying circular objects like `top` and `window` by only
         // updating existing context properties or new properties in the `win`
@@ -33104,9 +33104,9 @@ Script.prototype.runInContext = function (context) {
             defineProp(context, key, win[key]);
         }
     });
-    
+
     document.body.removeChild(iframe);
-    
+
     return res;
 };
 
@@ -33161,11 +33161,11 @@ __iced_k = __iced_k_noop = function() {};
 
 saltpack = require('../..');
 
-prompt = Buffer.concat([new Buffer(window.prompt("Put all your secrets here", "")), new Buffer('\n')]);
+prompt = Buffer.concat([Buffer.from(window.prompt("Put all your secrets here", "")), Buffer.from('\n')]);
 
 _ref = saltpack.lowlevel.util.alice_and_bob(), alice = _ref.alice, _ = _ref._;
 
-patrick_jack_and_mark_keys = [new Buffer('28536f6cd88b94772fc82b248163c5c7da76f75099be9e4bb3c7937f375ab70f', 'hex'), new Buffer('12474e6642d963c63bd8171cea7ddaef1120555ccaa15b8835c253ff8f67783c', 'hex'), new Buffer('915a08512f4fba8fccb9a258998a3513679e457b6f444a6f4bfc613fe81b8b1c', 'hex'), new Buffer('83711fb9664c478e43c62cf21040726b10d2670b7dbb49d3a6fcd926a876ff1c', 'hex'), new Buffer('28536f6cd88b94772fc82b248163c5c7da76f75099be9e4bb3c7937f375ab70f', 'hex')];
+patrick_jack_and_mark_keys = [Buffer.from('28536f6cd88b94772fc82b248163c5c7da76f75099be9e4bb3c7937f375ab70f', 'hex'), Buffer.from('12474e6642d963c63bd8171cea7ddaef1120555ccaa15b8835c253ff8f67783c', 'hex'), Buffer.from('915a08512f4fba8fccb9a258998a3513679e457b6f444a6f4bfc613fe81b8b1c', 'hex'), Buffer.from('83711fb9664c478e43c62cf21040726b10d2670b7dbb49d3a6fcd926a876ff1c', 'hex'), Buffer.from('28536f6cd88b94772fc82b248163c5c7da76f75099be9e4bb3c7937f375ab70f', 'hex')];
 
 es = new saltpack.stream.EncryptStream({
   encryptor: alice,
