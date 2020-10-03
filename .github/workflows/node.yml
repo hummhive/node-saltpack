@@ -1,0 +1,25 @@
+name: node tests
+on: [ push, pull_request ]
+jobs:
+ runs-on: ${{ matrix.os }}
+ strategy:
+  matrix:
+   os: [
+    ubuntu-latest,
+    macos-latest,
+    windows-latest
+   ]
+   node: [
+    10,
+    12,
+    14,
+    15,
+    16
+   ]
+ steps:
+  - uses: actions/checkout@v2
+  - uses: actions/setup-node@v2-beta
+    with:
+     node-version: ${{ matrix.node }}
+  - run: make setup
+  - run: make test
