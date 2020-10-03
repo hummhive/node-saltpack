@@ -11,11 +11,10 @@ jobs:
      windows-latest
     ]
     node: [
+     8,
      10,
      12,
-     14,
-     15,
-     16
+     14
     ]
   steps:
    - uses: actions/checkout@v2
