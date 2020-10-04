@@ -43,7 +43,6 @@ _test_saltpack_pipeline = (T, {do_armoring, anon_recips}, cb) ->
   stb = new util.StreamToBuffer()
   es.pipe(ds.first_stream)
   ds.pipe(stb)
-
   await util.stream_random_data(es, msg_length, defer(data))
   await
     stb.on('finish', defer())
@@ -91,45 +90,45 @@ exports.test_saltpack_with_armor = (T, cb) ->
   end = new Date().getTime()
   console.log("Time: #{end-start}")
   cb()
+#
+# exports.test_saltpack_without_armor = (T, cb) ->
+#   start = new Date().getTime()
+#   await _test_saltpack_pipeline(T, {do_armoring: false, anon_recips: false}, defer())
+#   end = new Date().getTime()
+#   console.log("Time: #{end-start}")
+#   cb()
+#
+# exports.test_anonymous_recipients = (T, cb) ->
+#   start = new Date().getTime()
+#   await _test_saltpack_pipeline(T, {do_armoring: false, anon_recips: false}, defer())
+#   end = new Date().getTime()
+#   console.log("Time: #{end-start}")
+#   cb()
 
-exports.test_saltpack_without_armor = (T, cb) ->
-  start = new Date().getTime()
-  await _test_saltpack_pipeline(T, {do_armoring: false, anon_recips: false}, defer())
-  end = new Date().getTime()
-  console.log("Time: #{end-start}")
-  cb()
-
-exports.test_anonymous_recipients = (T, cb) ->
-  start = new Date().getTime()
-  await _test_saltpack_pipeline(T, {do_armoring: false, anon_recips: false}, defer())
-  end = new Date().getTime()
-  console.log("Time: #{end-start}")
-  cb()
-
-exports.test_real_saltpack = (T, cb) ->
-  test_case = vectors.valid.real_saltpack
-  people_keys = [
-    Buffer.from('28536f6cd88b94772fc82b248163c5c7da76f75099be9e4bb3c7937f375ab70f', 'hex'),
-    Buffer.from('12474e6642d963c63bd8171cea7ddaef1120555ccaa15b8835c253ff8f67783c', 'hex'),
-    Buffer.from('915a08512f4fba8fccb9a258998a3513679e457b6f444a6f4bfc613fe81b8b1c', 'hex'),
-    Buffer.from('83711fb9664c478e43c62cf21040726b10d2670b7dbb49d3a6fcd926a876ff1c', 'hex'),
-    Buffer.from('28536f6cd88b94772fc82b248163c5c7da76f75099be9e4bb3c7937f375ab70f', 'hex'),
-    Buffer.from('7e1454c201e72d7f22ded1fe359d5817a4c969ad7f2b742450d4e5606372c87e', 'hex'),
-    Buffer.from('9322c883599f4440eda5c2d40b0e1590b569db171d6fec2a92fbe7e12f90b414', 'hex'),
-    Buffer.from('d8507ab27528c6118f525f2e4d0d99cfbebf1f399758f596057b573f6e01ed48', 'hex'),
-    Buffer.from('c51589346c15414cf18ab7c23fed27dc8055f69770d2f34f6ca141607cc34d63', 'hex'),
-    Buffer.from('720b0ce2a6f7a3aff279702d157aa78b1bd774273be18938f4c006c9aadac90d', 'hex'),
-    Buffer.from('196bcc720c24d0b9937e3d78b966d27ab3679eb23330d7d0ca39b57bb3bac256', 'hex'),
-    Buffer.from('5da375c0018da143c001fe426e39dde28f85d99d16a7d30b46dd235f4f6f5b59', 'hex'),
-    Buffer.from('ddc0f890b224bc698e4f843b046b1eeaf3455504b434837424bcb63132bec40c', 'hex'),
-    Buffer.from('d65361e0d119422d7fa2d461b1eb460fcf9e3d0ed864b5b06639526b787e3c3b', 'hex')]
-  es = new stream.EncryptStream({encryptor: null, do_armoring: true, recipients: people_keys})
-  stb = new util.StreamToBuffer()
-  es.pipe(stb)
-  es.write(test_case.input)
-  await
-    stb.on('finish', defer())
-    es.end()
-  console.log('Send the following to Patrick, Jack, Mark, Max Krohn, Chris Coyne, or Chris Ball:')
-  console.log(stb.getBuffer().toString())
-  cb()
+# exports.test_real_saltpack = (T, cb) ->
+#   test_case = vectors.valid.real_saltpack
+#   people_keys = [
+#     Buffer.from('28536f6cd88b94772fc82b248163c5c7da76f75099be9e4bb3c7937f375ab70f', 'hex'),
+#     Buffer.from('12474e6642d963c63bd8171cea7ddaef1120555ccaa15b8835c253ff8f67783c', 'hex'),
+#     Buffer.from('915a08512f4fba8fccb9a258998a3513679e457b6f444a6f4bfc613fe81b8b1c', 'hex'),
+#     Buffer.from('83711fb9664c478e43c62cf21040726b10d2670b7dbb49d3a6fcd926a876ff1c', 'hex'),
+#     Buffer.from('28536f6cd88b94772fc82b248163c5c7da76f75099be9e4bb3c7937f375ab70f', 'hex'),
+#     Buffer.from('7e1454c201e72d7f22ded1fe359d5817a4c969ad7f2b742450d4e5606372c87e', 'hex'),
+#     Buffer.from('9322c883599f4440eda5c2d40b0e1590b569db171d6fec2a92fbe7e12f90b414', 'hex'),
+#     Buffer.from('d8507ab27528c6118f525f2e4d0d99cfbebf1f399758f596057b573f6e01ed48', 'hex'),
+#     Buffer.from('c51589346c15414cf18ab7c23fed27dc8055f69770d2f34f6ca141607cc34d63', 'hex'),
+#     Buffer.from('720b0ce2a6f7a3aff279702d157aa78b1bd774273be18938f4c006c9aadac90d', 'hex'),
+#     Buffer.from('196bcc720c24d0b9937e3d78b966d27ab3679eb23330d7d0ca39b57bb3bac256', 'hex'),
+#     Buffer.from('5da375c0018da143c001fe426e39dde28f85d99d16a7d30b46dd235f4f6f5b59', 'hex'),
+#     Buffer.from('ddc0f890b224bc698e4f843b046b1eeaf3455504b434837424bcb63132bec40c', 'hex'),
+#     Buffer.from('d65361e0d119422d7fa2d461b1eb460fcf9e3d0ed864b5b06639526b787e3c3b', 'hex')]
+#   es = new stream.EncryptStream({encryptor: null, do_armoring: true, recipients: people_keys})
+#   stb = new util.StreamToBuffer()
+#   es.pipe(stb)
+#   es.write(test_case.input)
+#   await
+#     stb.on('finish', defer())
+#     es.end()
+#   console.log('Send the following to Patrick, Jack, Mark, Max Krohn, Chris Coyne, or Chris Ball:')
+#   console.log(stb.getBuffer().toString())
+#   cb()

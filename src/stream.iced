@@ -61,7 +61,7 @@ class NaClEncryptStream extends stream.ChunkStream
   # write the empty payload packet
   flush_append : (cb) ->
     esc = make_esc(cb, "NaClEncryptStream::_flush_append")
-    await @_encrypt(new Buffer(''), esc(defer(payload_list)))
+    await @_encrypt(Buffer.from(''), esc(defer(payload_list)))
     cb(null, payload_list)
 
   constructor : (@_encryptor, @_recipients, @_anonymized_recipients) ->

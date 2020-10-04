@@ -2,6 +2,7 @@ crypto = require('crypto')
 {make_esc} = require('iced-error')
 nonce = require('./nonce')
 util = require('./util')
+msgpack = require('keybase-msgpack-lite')
 
 # HMAC-SHA512-256(step1 hash, mac_key)
 compute_authenticator = ({hash, key}, cb) ->
@@ -34,7 +35,7 @@ exports.generate_encryption_payload_packet = ({payload_encryptor, plaintext, blo
   authenticators = []
   for i in [0...mac_keys.length]
     await compute_authenticator({hash : step1_hash, key : mac_keys[i]}, esc(defer(authenticators[i])))
-  cb(null, [authenticators, payload_secretbox])
+  cb(null, msgpack.encode([authenticators, payload_secretbox]))
 
 exports.parse_encryption_payload_packet = ({payload_decryptor, payload_list, block_num, header_hash, mac_key, recipient_index}, cb) ->
   esc = make_esc(cb, "parse_encryption_payload_packet")
