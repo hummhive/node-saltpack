@@ -39,9 +39,11 @@ exports.generate_encryption_payload_packet = ({payload_encryptor, plaintext, blo
 
 exports.parse_encryption_payload_packet = ({payload_decryptor, payload_list, block_num, header_hash, mac_key, recipient_index}, cb) ->
   esc = make_esc(cb, "parse_encryption_payload_packet")
+  payload_list = msgpack.decode(payload_list)
   # verify that we are an authenticator
   await step1({header_hash, block_num, payload_secretbox : payload_list[1]}, esc(defer(step1_hash)))
   await compute_authenticator({hash : step1_hash, key : mac_key}, esc(defer(computed_authenticator)))
+  console.log('computed_authenticator', computed_authenticator)
   unless util.bufeq_secure(computed_authenticator, payload_list[0][recipient_index])
     return cb(new Error('Integrity check failed!'), null)
 

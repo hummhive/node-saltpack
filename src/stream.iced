@@ -81,7 +81,7 @@ class NaClDecryptStream extends require('stream').Transform
     esc = make_esc(cb, "NaClDecryptStream::_decrypt")
     args = {
       payload_decryptor: @_decryptor,
-      payload_list: chunk,
+      payload_list: msgpack.encode(chunk),
       block_num: @_block_num,
       header_hash: @_header_hash,
       mac_key: @_mac_key,

@@ -49,7 +49,6 @@ exports.stream_random_data = (strm, len, cb) ->
     expected_results.push(buf)
 
     # write the buffer
-    console.log(buf)
     strm.write(buf)
   cb(Buffer.concat(expected_results))
 
