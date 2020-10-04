@@ -61,7 +61,7 @@ class NaClEncryptStream extends stream.ChunkStream
   # write the empty payload packet
   flush_append : (cb) ->
     esc = make_esc(cb, "NaClEncryptStream::_flush_append")
-    await @_encrypt(new Buffer(''), esc(defer(payload_list)))
+    await @_encrypt(Buffer.from(''), esc(defer(payload_list)))
     cb(null, payload_list)
 
   constructor : (@_encryptor, @_recipients, @_anonymized_recipients) ->
@@ -81,7 +81,7 @@ class NaClDecryptStream extends require('stream').Transform
     esc = make_esc(cb, "NaClDecryptStream::_decrypt")
     args = {
       payload_decryptor: @_decryptor,
-      payload_list: chunk,
+      payload_list: msgpack.encode(chunk),
       block_num: @_block_num,
       header_hash: @_header_hash,
       mac_key: @_mac_key,

@@ -78,7 +78,9 @@ exports.break_mac_key_in_payload_packet = (T, cb) ->
 
   # break the MAC key
   await header.parse_encryption_header_packet({decryptor : bob, header_intermediate}, esc(defer({mac_key})))
+  console.log('mac_key', mac_key)
   mac_key[0] = ~mac_key[0]
+  console.log('mac_key broke', mac_key)
 
   await payload.parse_encryption_payload_packet({decryptor : bob, payload_list, block_num : 0, header_hash, mac_key, recipient_index}, defer(err, _))
   T.equal(err?.message, "Integrity check failed!")

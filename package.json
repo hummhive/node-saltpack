@@ -10,19 +10,19 @@
   },
   "license": "BSD-3-Clause",
   "dependencies": {
-    "iced-error": "0.0.9",
+    "iced-error": "0.0.13",
     "iced-runtime": "^1.0.3",
-    "iced-test": "0.0.22",
     "keybase-chunk-stream": "^0.2.1",
     "keybase-msgpack-lite": "^0.1.25",
-    "keybase-nacl": "^1.0.9",
-    "node-armor-x": "^0.1.1"
+    "keybase-nacl": "^1.1.3",
+    "node-armor-x": "^0.1.1",
+    "sodium": "^3.0.2"
   },
   "author": "Mark Cohen",
   "devDependencies": {
     "browserify": "^16.0.0",
     "iced-coffee-script": "^108.0.9",
-    "iced-test": "0.0.22",
+    "iced-test": "1.0.0",
     "icsify": "^0.7.0",
     "istanbul": "^0.4.5"
   }
